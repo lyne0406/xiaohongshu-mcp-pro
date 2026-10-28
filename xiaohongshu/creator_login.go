@@ -84,6 +84,34 @@ func (a *CreatorLoginAction) SendOTP(phone string) ([]byte, error) {
 	return pp.Screenshot(false, nil)
 }
 
+
+// VisibleLoginPrompt reads any currently displayed official-site login dialog.
+// It does not click or dismiss the dialog, and never reads the phone input value.
+func (a *CreatorLoginAction) VisibleLoginPrompt() string {
+	v, err := a.page.Eval(`() => {
+		const selectors = '[role="dialog"],[role="alertdialog"],[role="alert"],.el-dialog,.ant-modal,[class*="dialog"],[class*="Dialog"],[class*="modal"],[class*="Modal"],[class*="message-box"]';
+		const texts = Array.from(document.querySelectorAll(selectors))
+		  .filter(el => {
+		    const box = el.getBoundingClientRect();
+		    const style = getComputedStyle(el);
+		    return box.width > 120 && box.height > 25 && style.display !== 'none' && style.visibility !== 'hidden';
+		  })
+		  .map(el => (el.innerText || '').trim())
+		  .filter(t => t.length >= 2 && t.length < 400)
+		  .sort((a,b) => a.length-b.length);
+		return texts[0] || '';
+	}`)
+	if err != nil {
+		return ""
+	}
+	msg := strings.TrimSpace(v.Value.Str())
+	if len([]rune(msg)) > 220 {
+		msg = string([]rune(msg)[:220])
+	}
+	return msg
+}
+
+
 // VerifyOTP 填写验证码并提交登录。
 // 返回值：(安全验证二维码截图, error)
 // 若小红书弹出"安全验证扫码"弹窗，会将截图返回给调用方展示给用户，
