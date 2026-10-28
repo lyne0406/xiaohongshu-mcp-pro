@@ -70,8 +70,7 @@ func rpc(ctx context.Context,id int,method string,params any)(rpcReply,error){
  data,err:=io.ReadAll(io.LimitReader(res.Body,11<<20))
  if err!=nil{return result,err}
  if strings.Contains(res.Header.Get("Content-Type"),"text/event-stream"){
-  for _,line:=range strings.Split(string(data),"
-"){
+  for _,line:=range strings.Split(string(data),"\n"){
    if strings.HasPrefix(line,"data:"){data=[]byte(strings.TrimSpace(strings.TrimPrefix(line,"data:")))}
   }
  }
@@ -92,8 +91,7 @@ func call(ctx context.Context,name string,args map[string]string)(toolReply,erro
 func toReply(res toolReply)replyBody{
  d:=replyBody{OK:true}
  for _,v:=range res.Content{
-  if v.Type=="text"{d.Text+=v.Text+"
-"}
+  if v.Type=="text"{d.Text+=v.Text+"\n"}
   if v.Type=="image"&&len(v.Data)<9<<20{d.Image=v.Data}
  }
  d.Text=strings.TrimSpace(d.Text)
