@@ -81,6 +81,36 @@ func (a *CreatorLoginAction) SendOTP(phone string) ([]byte, error) {
 	}
 	time.Sleep(2 * time.Second)
 
+	// The user authorized accepting the official creator login agreement.
+	// Match only the exact "同意并继续" / "取消" confirmation on the official login page.
+	if accepted, err := a.page.Eval(`() => {
+		if (location.hostname !== "creator.xiaohongshu.com" || !location.pathname.startsWith("/login")) return false;
+		const shown = el => {
+			const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+			return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none";
+		};
+		const nodes = Array.from(document.querySelectorAll("button,[role='button'],span,div"))
+			.filter(el => el.childElementCount === 0 && (el.textContent || "").trim() === "同意并继续" && shown(el));
+		for (const node of nodes) {
+			let parent = node.parentElement;
+			for (let i = 0; parent && i < 7; i++, parent = parent.parentElement) {
+				if (!shown(parent)) continue;
+				const cancel = Array.from(parent.querySelectorAll("button,[role='button'],span,div"))
+					.some(el => el.childElementCount === 0 && (el.textContent || "").trim() === "取消" && shown(el));
+				if (!cancel) continue;
+				const button = node.closest("button,[role='button']") || node;
+				if (button.disabled || button.getAttribute("aria-disabled") === "true") return false;
+				button.click();
+				return true;
+			}
+		}
+		return false;
+	}`); err != nil {
+		logrus.Warnf("creator login agreement detection failed: %v", err)
+	} else if accepted.Value.Bool() {
+		logrus.Info("creator official agreement confirmed by user's explicit authorization")
+		time.Sleep(2 * time.Second)
+	}
 	return pp.Screenshot(false, nil)
 }
 
