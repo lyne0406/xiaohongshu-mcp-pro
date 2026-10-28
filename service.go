@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -647,9 +648,13 @@ func (s *XiaohongshuService) CreatorPhoneLogin(phone string) (*CreatorPhoneLogin
 	s.creatorLoginBrowser = b
 	s.creatorLoginPage = page
 
+	message := "已点击发送验证码；短信是否真正发出尚未确认，请以小红书官方提示和手机实际收到为准。"
+	if prompt := strings.TrimSpace(action.VisibleLoginPrompt()); prompt != "" {
+		message += " 页面弹窗提示：" + strings.ReplaceAll(prompt, phone, "[手机号]")
+	}
 	return &CreatorPhoneLoginResponse{
 		Screenshot: fmt.Sprintf("data:image/png;base64,%s", encodeBase64(shot)),
-		Message:    "验证码已发送，请查看截图后调用 creator_verify_otp 填写验证码",
+		Message:    message,
 	}, nil
 }
 
