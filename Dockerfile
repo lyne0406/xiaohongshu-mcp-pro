@@ -73,6 +73,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=builder /out/app .
 
+# Railway 独立持久卷 /app/data: 保留小号的 Chrome Profile 与 Cookies
+ENV COOKIES_PATH=/app/data/cookies.json
+ENV ACCOUNTS_PATH=/app/data/accounts.json
+ENV HOME=/app/data/home
+ENV XDG_CONFIG_HOME=/app/data/config
+RUN mkdir -p /app/data/home /app/data/config && chmod -R 777 /app/data
+
 # 4. 创建共享目录并设置权限
 RUN mkdir -p /app/images && \
     chmod 777 /app/images
