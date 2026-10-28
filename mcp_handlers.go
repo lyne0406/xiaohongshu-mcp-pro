@@ -900,7 +900,7 @@ func (s *AppServer) handleBroadcastPublish(ctx context.Context, args BroadcastPu
 
 // handleCreatorPhoneLogin 发起 creator 手机号登录（发送验证码）
 func (s *AppServer) handleCreatorPhoneLogin(ctx context.Context, phone string) *MCPToolResult {
-	logrus.Infof("MCP: creator 手机号登录 -> phone: %s", phone)
+	logrus.Info("MCP: creator 手机号验证码登录请求（手机号不记录）")
 
 	resp, err := s.xiaohongshuService.CreatorPhoneLogin(phone)
 	if err != nil {
