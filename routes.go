@@ -30,7 +30,8 @@ func setupRoutes(appServer *AppServer) *gin.Engine {
 		},
 		&mcp.StreamableHTTPOptions{
 			JSONResponse: true, // 支持 JSON 响应
-		},
+			Stateless: true, // Railway web 与 MCP 的逐请求 HTTP 会话兼容
+		}
 	)
 	router.Any("/mcp", gin.WrapH(mcpHandler))
 	router.Any("/mcp/*path", gin.WrapH(mcpHandler))
