@@ -110,8 +110,10 @@ func start(w http.ResponseWriter,r *http.Request){
  guard.Lock()
  busy=false
  if err!=nil{phase="failed";notice="短信请求失败";guard.Unlock();reject(w,502,"短信请求未完成，请检查状态后重试");return}
- phase="awaiting-code";notice="验证码已请求";guard.Unlock()
- out:=toReply(data);out.Phase="awaiting-code";out.Message="已请求短信验证码，请查看手机"
+ phase="awaiting-code";notice="已点击发送，等待确认实际短信或页面提示";guard.Unlock()
+ out:=toReply(data);out.Phase="awaiting-code"
+ out.Message="已点击发送验证码，是否发送成功尚未确认。请先查看截图上的官方提示。"
+ if out.Text!=""{out.Message=out.Text}
  sendJSON(w,200,out)
 }
 func finish(w http.ResponseWriter,r *http.Request){
